@@ -2,7 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\UsersModel;
 use App\Models\User;
+use App\Models\Post;
+use App\Models\Like;
+use App\Models\Category;
+use App\Models\Comment;
+
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
@@ -66,4 +72,9 @@ class AuthController extends Controller
             'message' => 'Logged out'
         ];
     }
+
+    // public function password-reset(Request $request) {
+
+    // }
+
 }

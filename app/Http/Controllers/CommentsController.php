@@ -11,7 +11,7 @@ use App\Models\Comment;
 
 use Illuminate\Http\Request;
 
-class UsersController extends Controller
+class CommentsController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -20,7 +20,7 @@ class UsersController extends Controller
      */
     public function index()
     {
-        return UsersModel::all();
+        return Comment::all();
     }
 
     /**
@@ -31,14 +31,7 @@ class UsersController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'login' => 'required',
-            'password' => 'required|string|confirmed',
-            'email' => 'required|string|unique:users,email',
-            'role' => 'required'
-        ]);
-        return UsersModel::create($request->all());
+        //
     }
 
     /**
@@ -49,7 +42,7 @@ class UsersController extends Controller
      */
     public function show($id)
     {
-        return UsersModel::find($id);
+        return Comment::find($id);
     }
 
     /**
@@ -61,9 +54,9 @@ class UsersController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $users = UsersModel::find($id);
-        $users->update($request->all());
-        return $users;
+        $comment = Comment::find($id);
+        $comment->update($request->all());
+        return $comment;
     }
 
     /**
@@ -74,6 +67,6 @@ class UsersController extends Controller
      */
     public function destroy($id)
     {
-        return UsersModel::destroy($id);
+        return Comment::destroy($id);
     }
 }

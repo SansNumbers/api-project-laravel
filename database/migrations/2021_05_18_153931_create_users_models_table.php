@@ -15,12 +15,14 @@ class CreateUsersModelsTable extends Migration
     {
         Schema::create('users_models', function (Blueprint $table) {
             $table->id();
+            
             $table->string('login');
             $table->string('password');
             $table->string('name');
             $table->string('email');
             $table->integer('rating')->nullable();
             $table->enum('role', ['user', 'admin'])->default('user');
+
             $table->timestamps();
         });
     }
