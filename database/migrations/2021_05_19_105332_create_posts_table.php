@@ -16,14 +16,14 @@ class CreatePostsTable extends Migration
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
 
-            $table->string('author')->nullable()->constrained('users')->onDelete('set null');;
+            $table->foreignId('author')->nullable()->constrained('users')->onDelete('set null');
             $table->string('title')->unique();
-            $table->enum('status', ['active', 'inactive'])->default('inactive');
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->text('content');
             $table->integer('rating')->default(0);
-            $table->json('categories')->nullable();
+            $table->json('categories');
             $table->boolean('locked')->default(false);
-            
+
             $table->timestamps();
         });
     }

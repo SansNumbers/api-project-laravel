@@ -20,7 +20,7 @@ class CreateCommentsTable extends Migration
             $table->text('content');
             $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
             $table->integer('rating')->default(0);
-            
+
             $table->timestamps();
         });
     }

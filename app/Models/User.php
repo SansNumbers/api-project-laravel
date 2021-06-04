@@ -10,6 +10,7 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    use \Backpack\CRUD\app\Models\Traits\CrudTrait;
     use HasFactory, Notifiable, HasApiTokens;
 
     /**
@@ -18,10 +19,18 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
+        'login',
         'name',
-        'email',
         'password',
+        'avatar',
+        'email',
+        'role'
     ];
+
+    //Hashing password
+    public function setPasswordAttribute($value) {
+        $this->attributes['password'] = bcrypt($value);
+    }
 
     /**
      * The attributes that should be hidden for arrays.
@@ -31,6 +40,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'role'
     ];
 
     /**
@@ -39,6 +49,6 @@ class User extends Authenticatable
      * @var array
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
+        'rating' => 'integer'
     ];
 }

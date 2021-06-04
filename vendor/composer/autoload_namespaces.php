@@ -6,5 +6,6 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Postmark\\' => array($vendorDir . '/wildbit/swiftmailer-postmark/src'),
     'Mockery' => array($vendorDir . '/mockery/mockery/library'),
 );

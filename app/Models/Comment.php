@@ -7,5 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 
 class Comment extends Model
 {
+    use \Backpack\CRUD\app\Models\Traits\CrudTrait;
     use HasFactory;
+
+    protected $fillable = [
+        'author',
+        'content',
+        'post_id',
+        'rating'
+    ];
+
+    protected $casts = [
+        'rating' => 'integer'
+    ];
+
+    public function post() {
+        return $this->belongsTo('\App\Models\Post');
+    }
 }

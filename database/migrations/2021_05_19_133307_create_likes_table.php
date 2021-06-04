@@ -14,10 +14,12 @@ class CreateLikesTable extends Migration
     public function up()
     {
         Schema::create('likes', function (Blueprint $table) {
+
             $table->foreignId('author')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('post_id')->nullable()->constrained('posts')->onDelete('cascade');
             $table->foreignId('comment_id')->nullable()->constrained('comments')->onDelete('cascade');
             $table->enum('type', ['like', 'dislike']);
+
         });
     }
 

@@ -2,54 +2,56 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UsersModel;
 use App\Models\User;
-use App\Models\Post;
-use App\Models\Like;
-use App\Models\Category;
-use App\Models\Comment;
+
+use Illuminate\Support\Facades\Mail;
+// use App\Mail\Mail;
+
+use Illuminate\Support\Facades\Auth;
+
+use Laravel\Sanctum\HasApiTokens;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Password;
+
+use DB;
 
 class AuthController extends Controller
 {
     public function register(Request $request) {
         $fields = $request->validate([
-            'name' => 'required|string',
             'login' => 'required|string',
             'email' => 'required|string|unique:users,email',
             'password' => 'required|string|confirmed'
         ]);
-        
+
         $user = User::create([
-            'name' => $fields['name'],
             'login' => $fields['login'],
             'email' => $fields['email'],
             'password' => bcrypt($fields['password'])
         ]);
-        
+
         $token = $user->createToken('myapptoken')->plainTextToken;
 
-        $response = [
+        return response()->json([
             'user' => $user,
-            'token' => $token
-        ];
-
-        return response($response, 201);
+            'token' => $token,
+            'status' => 'Success',
+            'message' => 'User has been successfully registered'
+        ]);
     }
 
     public function login(Request $request) {
-        $fields = $request->validate([
-            'email' => 'required|string',
+        $credentials = $request->validate([
+            'login' => 'required|string',
             'password' => 'required|string'
         ]);
-        
-        //check email
-        $user = User::where('email', $fields['email'])->first();
-        //check pass
-        if(!$user || !Hash::check($fields['password'], $user->password)) {
+
+        $user = User::where('login', $credentials['login'])->first();
+
+        if(!$user || !Hash::check($credentials['password'], $user->password)) {
             return response([
                 'message' => 'Bad creds'
             ], 401);
@@ -57,24 +59,55 @@ class AuthController extends Controller
 
         $token = $user->createToken('myapptoken')->plainTextToken;
 
-        $response = [
+        return response()->json([
             'user' => $user,
-            'token' => $token
-        ];
-
-        return response($response, 201);
+            'token' => $token,
+            'status' => 'Success',
+            'message' => 'User logged in'
+        ]);
     }
 
-    public function logout(Request $request) {
+    public function logout() {
         auth()->user()->tokens()->delete();
-
-        return [
+        return response()->json([
+            'status' => 'Success',
             'message' => 'Logged out'
-        ];
+        ]);
     }
 
-    // public function password-reset(Request $request) {
+    public function passwordReset(Request $request) {
 
-    // }
+        $fields = $request->validate([
+            'email' => 'required|string',
+        ]);
 
+        $user = User::where('email', $fields['email'])->first();
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        $email = $request->input('email');
+        $user = DB::select('SELECT * FROM users WHERE email=:email', ['email' => $email]);
+        if (empty($user)) {
+            return response()->json([
+                'status' => 'FAIL',
+                'message' => 'There is no user with such email address'
+            ]);
+        }
+
+        $mailObj = new \stdClass();
+        $token = Str::random(12);
+        $mailObj->path = "http://localhost:{$_SERVER['SERVER_PORT']}/api/auth/password-reset/$token"; // link for the email
+        $mailObj->receiver = $user[0]->name;
+        Mail::to($email)->send(new ($mailObj));
+
+        // Remember the token
+        DB::update('UPDATE users SET remember_token=:token WHERE email=:email', ['token' => $token, 'email' => $email]);
+
+        return response()->json([
+            'status' => 'OK',
+            'message' => 'A password reset link was send to your email address'
+        ]);
+    }
 }

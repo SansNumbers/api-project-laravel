@@ -24,20 +24,6 @@ class CategoriesController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'title' => 'required'
-        ]);
-        return Category::create($request->all());
-    }
-
-    /**
      * Display the specified resource.
      *
      * @param  int  $id
@@ -46,6 +32,46 @@ class CategoriesController extends Controller
     public function show($id)
     {
         return Category::find($id);
+    }
+
+
+    public function getPosts($id)
+    {
+        $category = Category::find($id);
+        if (empty($category)) {
+            return response()->json([
+                'status' => 'FAIL',
+                'message' => 'There is no such category'
+            ]);
+        }
+        return \DB::table('posts')->whereJsonContains('categories', array('value' => (int)$id))->get();
+    }
+
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        $input = $request->validate([
+            'title' => 'required|string|unique:categories,title',
+            'description' => 'string'
+        ]);
+
+        $category = Category::create([
+            'title' => $input['title'],
+            'description' => $input['description']
+        ]);
+
+        return response()->json([
+            'category' => $category,
+            'status' => 'Success',
+            'message' => 'Category created'
+        ]);
+
     }
 
     /**
@@ -57,9 +83,17 @@ class CategoriesController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $user = User::findOrFail(auth()->user()->id)['login'];
         $category = Category::find($id);
-        $category->update($request->all());
-        return $category;
+
+        if(!$category || $category['author'] != $user) {
+            return response()->json([
+                'status' => 'FAIL',
+                'message'=> 'You have no access rights or category doesn`t exist'
+            ]);
+        } else {
+            return $category->update($request->all());
+        }
     }
 
     /**
@@ -70,6 +104,16 @@ class CategoriesController extends Controller
      */
     public function destroy($id)
     {
-        return Category::destroy($id);
+        $user = User::findOrFail(auth()->user()->id)['login'];
+        $category = Category::find($id);
+
+        if(!$category || $category['author'] != $user) {
+            return response()->json([
+                'status' => 'FAIL',
+                'message'=>'You have no access rights or category doesn`t exist'
+            ]);
+        } else {
+            return Category::destroy($id);
+        }
     }
 }

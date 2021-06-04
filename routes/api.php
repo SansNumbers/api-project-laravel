@@ -28,9 +28,15 @@ use Illuminate\Support\Facades\Route;
 // 4. send a reset link (POST) /api/auth/password-reset
 // 5. confirm new password (POST) /api/auth/password-reset/{confirm_token}
 // |--------------------------------------------------------------------------
+
 Route::post('/auth/register', [AuthController::class, 'register']); //auth register
 Route::post('/auth/login', [AuthController::class, 'login']); //auth login
+Route::post('/auth/password-reset', [AuthController::class, 'passwordReset'])->name('password.reset');
+Route::post('/auth/password-reset/{$token}', [AuthController::class, 'confirmToken']);
 
+Route::group(['middleware' => ['auth:sanctum']], function() {
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+});
 
 // |--------------------------------------------------------------------------
 // | User
@@ -42,7 +48,16 @@ Route::post('/auth/login', [AuthController::class, 'login']); //auth login
 // 6. delete user (DELETE) /api/users/{id}
 // |--------------------------------------------------------------------------
 
-Route::resource('users', UsersController::class);
+Route::get('/users/{id}', [UsersController::class, 'show']);
+
+Route::group(['middleware' => ['auth:sanctum']], function() {
+    Route::get('/users', [UsersController::class, 'index']);
+    Route::post('/users', [UsersController::class, 'store']);
+    Route::patch('/users', [UsersController::class, 'update']);
+    Route::delete('/users', [UsersController::class, 'destroy']);
+});
+
+Route::post('/users/avatar', [UsersController::class, 'setAvatar']);
 
 // |--------------------------------------------------------------------------
 // | Public post
@@ -59,14 +74,24 @@ Route::resource('users', UsersController::class);
 // 11. delete a like (DELETE) /api/posts/{id}/like
 // |--------------------------------------------------------------------------
 
-Route::resource('posts', PostController::class);
+Route::get('/posts', [PostController::class, 'index']);
+Route::get('/posts/{id}', [PostController::class, 'show']);
 
-Route::get('/posts/{id}/comments', [PostController::class, 'index']); //post get comments //public
-Route::post('/posts/{id}/comments', [PostController::class, 'index']); //post create comment
-Route::get('/posts/{id}/categories', [PostController::class, 'index']); //post get categories
-Route::get('/posts/{id}/like', [PostController::class, 'index']); //post get all likes
-Route::post('/posts/{id}/like', [PostController::class, 'index']); //post create like
-Route::delete('/posts/{id}/like', [PostController::class, 'index']); //post delete like
+Route::group(['middleware' => ['auth:sanctum']], function() {
+
+    Route::post('/posts', [PostController::class, 'store']);
+    Route::patch('/posts/{id}', [PostController::class, 'update']);
+    Route::delete('/posts/{id}', [PostController::class, 'destroy']);
+
+    Route::get('/posts/{id}/comments', [PostController::class, 'getComment']); //post get comments //public
+    Route::post('/posts/{id}/comments', [PostController::class, 'createComment']); //post create comment
+
+    Route::get('/posts/{id}/like', [PostController::class, 'getLikes']); //post get all likes
+    Route::post('/posts/{id}/like', [PostController::class, 'like']); //post create like
+    Route::delete('/posts/{id}/like', [PostController::class, 'removeLike']); //post delete like
+
+    Route::get('/posts/{id}/categories', [PostController::class, 'getCategories']); //post get categories
+});
 
 // |--------------------------------------------------------------------------
 // | Public categories
@@ -77,9 +102,18 @@ Route::delete('/posts/{id}/like', [PostController::class, 'index']); //post dele
 // 5. update category data (PATCH) /api/categories/{id}
 // 6. delete a category (DELETE) /api/categories/{id}
 // |--------------------------------------------------------------------------
-Route::resource('categories', CategoriesController::class);
 
-Route::get('/categories/{id}/posts', [CategoriesController::class, 'index']); //categories get posts
+Route::group(['middleware' => ['auth:sanctum']], function() {
+
+    Route::get('/categories', [CategoriesController::class, 'index']);
+    Route::get('/categories/{id}', [CategoriesController::class, 'show']);
+    Route::post('/categories', [CategoriesController::class, 'store']);
+    Route::patch('/categories/{id}', [CategoriesController::class, 'update']);
+    Route::delete('/categories/{id}', [CategoriesController::class, 'destroy']);
+
+});
+
+Route::get('/categories/{id}/posts', [CategoriesController::class, 'getPosts']); //categories get posts
 
 // |--------------------------------------------------------------------------
 // | Public comments
@@ -90,21 +124,23 @@ Route::get('/categories/{id}/posts', [CategoriesController::class, 'index']); //
 // 5. delete a comment (DELETE) /api/comments/{id}
 // 6. delete a like (DELETE) /api/comments/{id}/like
 // |--------------------------------------------------------------------------
-Route::resource('comments', CommentsController::class);
 
-Route::get('/comments/{id}/like', [CommentsController::class, 'index']); //comments get likes
-Route::post('/comments/{id}/like', [CommentsController::class, 'index']); //comments post likes
-Route::delete('/comments/{id}/like', [CommentsController::class, 'index']); //comments delete {id} comments likes
+Route::group(['middleware' => ['auth:sanctum']], function() {
+    Route::get('/comments/{id}', [CommentsController::class, 'show']);
+    Route::patch('/comments/{id}', [CommentsController::class, 'update']);
+    Route::delete('/comments/{id}', [CommentsController::class, 'destroy']);
+
+    Route::get('/comments/{id}/like', [CommentsController::class, 'getLikesComment']); //comments get likes
+    Route::post('/comments/{id}/like', [CommentsController::class, 'likeComment']); //comments post likes
+    Route::delete('/comments/{id}/like', [CommentsController::class, 'removeLikeComment']); //comments delete {id} comments likes
+});
 
 
-
-//Protected
+//Protected (if authorized -> implements)
 Route::group(['middleware' => ['auth:sanctum']], function() {
     Route::post('/users', [UsersController::class, 'store']); //user create user
     Route::patch('/users/{id}', [UsersController::class, 'update']); //user update user
-    //user avatar user
     Route::delete('/users/{id}', [UsersController::class, 'destroy']); //user delete user
-    Route::post('/auth/logout', [AuthController::class, 'logout']); //auth logout
 });
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
