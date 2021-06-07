@@ -20,6 +20,7 @@ use DB;
 
 class AuthController extends Controller
 {
+    //Registration new user (for all)
     public function register(Request $request) {
         $fields = $request->validate([
             'login' => 'required|string',
@@ -47,6 +48,7 @@ class AuthController extends Controller
         ]);
     }
 
+    //Login user (all users)
     public function login(Request $request) {
         $credentials = $request->validate([
             'login' => 'required|string',
@@ -75,24 +77,13 @@ class AuthController extends Controller
         ]);
     }
 
-
-    // public function reset_password(Request $request, $token) {
-    //     $fields = $request->validate([
-    //         'password' => 'required|string|confirmed'
-    //     ]);
-    //     $user = User::where('remember_token', $token)->first();
-    //     $user->update(['password' => bcrypt($fields['password'])]);
-    //     return [
-    //         'message' => 'Password was changed!'
-    //     ];
-    // }
-
-
+    //Password reset on email (all users)
     public function passwordReset(Request $request){
-        $fileds = $request->validate([
+        $fields = $request->validate([
             'email' => 'required|string',
         ]);
-        $user = User::where('email', $fileds['email'])->first();
+
+        $user = User::where('email', $fields['email'])->first();
 
         $token = $user->createToken('resetToken')->plainTextToken;
 
@@ -114,6 +105,7 @@ class AuthController extends Controller
         ];
     }
 
+    //New password (all users)
     public function confirmToken(Request $request, $token) {
         $fields = $request->validate([
             'password' => 'required|string|confirmed'
@@ -128,13 +120,13 @@ class AuthController extends Controller
         return [
             'message' => 'Password was changed!'
         ];
-
-
     }
     
+    //Logout (for all)
     public function logout() {
-
-        auth()->user()->update(['remember_token' => NULL]);
+        $user = User::where('remember_token', explode('.', explode(' ', request()->header('Authorization'))[1]))->first();
+        $user->remember_token = null;
+        $user->save();
 
         return response()->json([
             'status' => 'Success',

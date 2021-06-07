@@ -51,15 +51,14 @@ Route::group(['middleware' => ['auth:sanctum']], function() {
 Route::get('/users/{id}', [UsersController::class, 'show']);
 
 
-
 Route::group(['middleware' => ['auth:sanctum']], function() {
     Route::get('/users', [UsersController::class, 'index']);
     Route::post('/users', [UsersController::class, 'store']);
-    Route::patch('/users', [UsersController::class, 'update']);
+    Route::patch('/users/{id}', [UsersController::class, 'update']);
     Route::delete('/users', [UsersController::class, 'destroy']);
+    Route::post('/users/avatar', [UsersController::class, 'setAvatar']);
 });
 
-Route::post('/users/avatar', [UsersController::class, 'setAvatar']);
 
 // |--------------------------------------------------------------------------
 // | Public post

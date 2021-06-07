@@ -22,33 +22,29 @@ use Illuminate\Support\Facades\Validator;
 class UsersController extends Controller
 {
     use UploadTrait;
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
+    //Display all users (admin only)
     public function index()
     {
+        $user = $this->isAdmin();
+
+        if (!$user) {
+            return response()->json([
+                'status' => 'FAIL',
+                'message' => 'You`re not admin'
+            ]);
+        }
+
         return User::all();
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    //Display the specified resource.
     public function show($id)
     {
         return User::find($id);
     }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+ 
+    //Create new user (admin only)
     public function store(Request $request)
     {
         $user = $this->isAdmin();
@@ -60,7 +56,7 @@ class UsersController extends Controller
             ]);
         }
 
-        $credentials = $request->only(['login', 'password', 'email', 'role', 'name', 'avatar']);
+        $credentials = $request->only(['login', 'password', 'email', 'role', 'name']);
 
         $validator = Validator::make($credentials, [
             'login' => 'required|unique:App\Models\User,login',
@@ -80,91 +76,73 @@ class UsersController extends Controller
 
         $user = User::create($credentials);
 
-        if (isset($image_data)) {
-            $image = $credentials['avatar'];
-            $image_data = 'avatars/' . $user->id . '.png';
-            $file = fopen($image_data, "w");
-            fwrite($file, base64_decode($image));
-            fclose($file);
-            $user->avatar = $image_data;
-            $user->save();
-        }
-
         return response()->json([
             'status' => 'OK',
             'message' => 'User successfully registered',
         ]);
 
-        // $request->validate([
-        //     'name' => 'required',
-        //     'login' => 'required',
-        //     'password' => 'required|string|confirmed',
-        //     'email' => 'required|string|unique:users,email',
-        //     'role' => 'required'
-        // ]);
-        // return User::create($request->all());
     }
 
-    // public function setAvatar(Request $request)
-    // {
-    //     $request->validate([
-    //         'avatar' => 'required|image|mimes:jpeg,png,jpg|max:2048'
-    //     ]);
-
-    //     $user = optional(Auth::user())->id;
-
-    //     $image_data;
-
-
-
-    //     if (isset($image_data)) {
-    //         $image = $image_data;
-    //         $image_data = 'avatars/' . $user->id . '.png';
-    //         $file = fopen($image_data, "w");
-    //         fwrite($file, base64_decode($image));
-    //         fclose($file);
-
-    //         $user->avatar = $image_data;
-    //         $user->save();
-    //     }
-
-    //     $user->save();
-    //     return [
-    //         'message' => 'Profile updated successfully.',
-    //     ];
-    // }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    //Update the specified resource from storage.
     public function update(Request $request, $id)
     {
+        $user = $this->checkAuth();
 
+        if(!$user)
+        {
+            return response()->json([
+                'status' => 'Fail',
+                'message' => 'Log in firstly',
+            ]);
+        }
 
-        // if (!$user) {
-        //     return response()->json([
-        //         'status' => 'FAIL',
-        //         'message' => 'Unauthorized'
-        //     ]);
-        // }
+        if ($user->id != $id && $user->role != 'admin') {
+            return response()->json([
+                'status' => 'FAIL',
+                'message' => 'You have no access rights'
+            ]);
+        }
 
         $user = User::find($id);
         $user->update($request->all());
         return $user;
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    //Set avatar
+    public function setAvatar(Request $request) {
+        $user_id = auth()->user()->id;
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif',
+        ]);
+
+        $avatarName = time().'.'.$request->avatar->extension();
+        $request->avatar->move(public_path('storage/images'), $avatarName);
+        $path = 'storage/images/'.$avatarName;
+        User::whereKey($user_id)->update(['avatar' => $path]);
+    
+        return asset($path);
+    }
+
+    //Remove the specified resource from storage.
     public function destroy($id)
     {
+        $user = $this->checkAuth();
+
+        if(!$user)
+        {
+            return response()->json([
+                'status' => 'Fail',
+                'message' => 'Log in firstly',
+            ]);
+        }
+
+        if ($user->id != $id && $user->role != 'admin') {
+            return response()->json([
+                'status' => 'FAIL',
+                'message' => 'You have no access rights'
+            ]);
+        }
+        
         return User::destroy($id);
     }
 }

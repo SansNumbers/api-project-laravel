@@ -17,43 +17,25 @@ use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
+    //Show all posts (for all)
     public function index()
     {
         return Post::all();
     }
 
+    //Show specified comment under post (for all)
     public function getComment($id)
     {
         return Comment::where('post_id', $id)->get();
     }
 
+    //Show specified post (for all)
     public function show($id)
     {
         return Post::find($id);
     }
 
-    // private function sorting($posts) {
-    //     if (!isset($_GET['sort']))
-    //         $_GET['sort'] = 'likes';
-    //     switch ($_GET['sort']) {
-    //         case 'likes':
-    //             return array_values($posts->sortByDescription('rating')->all());
-    //             break;
-    //         case 'likes-asc':
-    //             return array_values($posts->sortByRating('rating')->all());
-    //             break;
-    //         case 'date':
-    //             return array_values($posts->sortByDate('created_at')->all());
-    //             break;
-    //         case 'date-desc':
-    //             return array_values($posts->sortByDateCreation('created_at')->all());
-    //             break;
-    //         default:
-    //             return array_values($posts->sortByRating('rating')->all());
-    //             break;
-    //     }
-    // }
-
+    //Create comment
     public function createComment(Request $request, $id)
     {
         $credentials = $request->validate([
@@ -68,12 +50,12 @@ class PostController extends Controller
             'post_id' => $post['id']
         ]);
 
-        // if(!$post) {
-        //     return response()->json([
-        //         'status' => 'FAIL',
-        //         'message' => 'There is no such post'
-        //     ]);
-        // }
+        if(!$post) {
+            return response()->json([
+                'status' => 'FAIL',
+                'message' => 'There is no such post'
+            ]);
+        }
 
         if(!$comment) {
             return response()->json([
@@ -88,13 +70,7 @@ class PostController extends Controller
         }
     }
 
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+    //Create post
     public function store(Request $request)
     {
         $credentials = $request->validate([
@@ -134,10 +110,12 @@ class PostController extends Controller
         }
     }
 
+    //Get all likes
     public function getLikes($id) {
         return Like::where('post_id', (int)$id)->get();
     }
 
+    //Like post
     public function like(Request $request, $id) {
     {
         $credentials = $request->validate([
@@ -203,6 +181,7 @@ class PostController extends Controller
         }
     }
 
+    //Remove like
     public function removeLike(Request $request, $id) {
 
         if (empty(Post::find($id))) {
@@ -235,18 +214,28 @@ class PostController extends Controller
         return $like->delete();
     }
 
-    // public function like($id)
-    // {
-    //     return Post::destroy($id);
-    // }
-
-
-
+    //Update post
     public function update(Request $request, $id)
     {
-        $user = User::findOrFail(auth()->user()->id)['login'];
+        $user = $this->isAdmin();
+        
         $posts = Post::find($id);
-        if(!$posts || $posts['author'] != $user){
+
+        if(!$user) {
+            return response()->json([
+                'status' => 'FAIL',
+                'message'=> 'You have no access rights'
+            ]);
+        } else {
+            $posts->update($request->all());
+            return $posts;
+        }
+
+        $user = User::findOrFail(auth()->user()->id)['login'];
+
+        $posts = Post::find($id);
+
+        if(!$posts || $posts['author'] != $user || $user->role != 'admin'){
             return response()->json([
                 'status' => 'FAIL',
                 'message' => 'You have no access rights or post doesn`t exist'
@@ -257,23 +246,30 @@ class PostController extends Controller
         }
     }
 
+    //Delete post
     public function destroy($id)
     {
+        $user = $this->isAdmin();
+
+        if(!$user) {
+            return response()->json([
+                'status' => 'FAIL',
+                'message'=> 'You have no access rights'
+            ]);
+        } else {
+            return Post::destroy($id);
+        }
+
         $user = User::findOrFail(auth()->user()->id)['login'];
         $post = Post::find($id);
 
-        if(!$post || $post['author'] != $user) {
+        if(!$post || $post['author'] != $user || $user->role != 'admin') {
             return response()->json([
                 'status' => 'FAIL',
-                'message'=>'You have no access rights or post doesn`t exists'
+                'message'=> 'You have no access rights or post doesn`t exists'
             ]);
         } else {
             return Post::destroy($id);
         }
     }
-
-    // public function dislike($id)
-    // {
-    //     return Post::destroy($id);
-    // }
 }

@@ -13,16 +13,19 @@ use Illuminate\Http\Request;
 
 class CommentsController extends Controller
 {
+    //Show comment by id
     public function show($id)
     {
         return Comment::where('id', $id)->get();
     }
 
+    //Get all likes under comment
     public function getLikesComment($id)
     {
         return Like::where('comment_id', (int)$id)->get();
     }
 
+    //Like comment
     public function likeComment(Request $request, $id) {
     {
         $credentials = $request->validate([
@@ -32,7 +35,7 @@ class CommentsController extends Controller
         if (empty(Comment::find($id))) {
             return response()->json([
                 'status' => 'FAIL',
-                'message' => 'There is no such post'
+                'message' => 'There is no such comment'
             ]);
         }
 
@@ -40,11 +43,10 @@ class CommentsController extends Controller
         $like = Like::where('author', $credentials['type'])->where('comment_id', $id)->get();
 
         if (count($like) > 0) {
-            if ($credentials['type'] === 'like') { // client sent like
+            if ($credentials['type'] === 'like') {
                 if ($like[0]['type'] === 'like')
-                    return $this->unlike($request, $id); // delete like
-                else { // change dislike on like
-                    // Update rating of post and type of like entity
+                    return $this->unlike($request, $id);
+                else {
                     $comment->rating += 1;
                     $comment->save();
                     $like[0]->type = 'like';
@@ -55,11 +57,10 @@ class CommentsController extends Controller
                     return $like[0];
                 }
             }
-            else { // client sent dislike
+            else {
                 if ($like[0]['type'] === 'dislike')
-                    return $this->unlike($request, $id); // delete dislike
-                else { // change like on dislike
-                    // Update rating of post and type of like entity
+                    return $this->unlike($request, $id);
+                else {
                     $comment->rating -= 1;
                     $comment->save();
                     $like[0]->type = 'dislike';
@@ -90,12 +91,13 @@ class CommentsController extends Controller
         }
     }
 
+    //Remove like under post
     public function removeLikeComment(Request $request, $id) {
 
         if (empty(Comment::find($id))) {
             return response()->json([
                 'status' => 'FAIL',
-                'message' => 'There is no such post'
+                'message' => 'There is no such comment'
             ]);
         }
 
@@ -122,6 +124,7 @@ class CommentsController extends Controller
         return $like->delete();
     }
 
+    //Update comment
     public function update(Request $request, $id)
     {
         $user = User::findOrFail(auth()->user()->id)['login'];
@@ -138,15 +141,29 @@ class CommentsController extends Controller
         }
     }
 
+    //Delete comment
     public function destroy($id)
     {
+        $user = $this->isAdmin();
+        
+        $comment = Comment::find($id);
+
+        if(!$user) {
+            return response()->json([
+                'status' => 'FAIL',
+                'message'=> 'You have no access rights'
+            ]);
+        } else {
+            return Comment::destroy($id);
+        }
+        
         $user = User::findOrFail(auth()->user()->id)['login'];
         $comment = Comment::find($id);
 
         if(!$comment || $comment['author'] != $user) {
             return response()->json([
                 'status' => 'FAIL',
-                'message'=>'You have no access rights or post doesn`t exists'
+                'message'=>'You have no access rights or comment doesn`t exist'
             ]);
         } else {
             return Comment::destroy($id);

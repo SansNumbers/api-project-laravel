@@ -13,30 +13,47 @@ use Illuminate\Http\Request;
 
 class CategoriesController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
+    //All categories (admin only)
     public function index()
     {
+        $user = $this->isAdmin();
+
+        if (!$user) {
+            return response()->json([
+                'status' => 'FAIL',
+                'message' => 'You`re not admin'
+            ]);
+        }
+
         return Category::all();
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    //Display specified category (admin only)
     public function show($id)
     {
+        $user = $this->isAdmin();
+        if (!$user) {
+            return response()->json([
+                'status' => 'FAIL',
+                'message' => 'You`re not admin'
+            ]);
+        }
         return Category::find($id);
     }
 
-
+    //Get posts by categories 
     public function getPosts($id)
     {
+        $user = $this->isAdmin();
+
+        if (!$user) {
+            return response()->json([
+                'status' => 'FAIL',
+                'message' => 'You`re not admin'
+            ]);
+        }
+
         $category = Category::find($id);
         if (empty($category)) {
             return response()->json([
@@ -47,15 +64,18 @@ class CategoriesController extends Controller
         return \DB::table('posts')->whereJsonContains('categories', array('value' => (int)$id))->get();
     }
 
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+    //Create new category (admin only)
     public function store(Request $request)
     {
+        $user = $this->isAdmin();
+
+        if (!$user) {
+            return response()->json([
+                'status' => 'FAIL',
+                'message' => 'You`re not admin'
+            ]);
+        }
+
         $input = $request->validate([
             'title' => 'required|string|unique:categories,title',
             'description' => 'string'
@@ -71,49 +91,38 @@ class CategoriesController extends Controller
             'status' => 'Success',
             'message' => 'Category created'
         ]);
-
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    //Update category (admin only)
     public function update(Request $request, $id)
     {
+        $user = $this->isAdmin();
+
+        if (!$user) {
+            return response()->json([
+                'status' => 'FAIL',
+                'message' => 'You`re not admin'
+            ]);
+        }
+
         $user = User::findOrFail(auth()->user()->id)['login'];
         $category = Category::find($id);
 
-        if(!$category || $category['author'] != $user) {
-            return response()->json([
-                'status' => 'FAIL',
-                'message'=> 'You have no access rights or category doesn`t exist'
-            ]);
-        } else {
-            return $category->update($request->all());
-        }
+        return $category->update($request->all());
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    //Delete category (admin only)
     public function destroy($id)
     {
-        $user = User::findOrFail(auth()->user()->id)['login'];
-        $category = Category::find($id);
+        $user = $this->isAdmin();
 
-        if(!$category || $category['author'] != $user) {
+        if (!$user) {
             return response()->json([
                 'status' => 'FAIL',
-                'message'=>'You have no access rights or category doesn`t exist'
+                'message' => 'You`re not admin'
             ]);
-        } else {
-            return Category::destroy($id);
         }
+
+        return Category::destroy($id);
     }
 }

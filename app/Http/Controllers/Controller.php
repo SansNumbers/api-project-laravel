@@ -13,15 +13,23 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    public function isAdmin()
-    {
-        foreach ($this->roles()->get() as $role)
-        {
-            if ($role->name == 'admin') {
-                return true;
-            } else {
-                return false;
-            }
-        }
+    protected function checkAuth() {
+        if (!request()->header('Authorization'))
+            return false;
+        $token = explode('.', explode(' ', request()->header('Authorization'))[1]);
+        $user = User::where('remember_token', $token)->first();
+        if (!$user)
+            return false;
+        return $user;
+    }
+
+    protected function isAdmin() {
+        if (!request()->header('Authorization'))
+            return false;
+        $token = explode('.', explode(' ', request()->header('Authorization'))[1]);
+        $user = User::where('remember_token', $token)->first();
+        if (!$user || $user->role !== 'admin')
+            return false;
+        return $user;
     }
 }
