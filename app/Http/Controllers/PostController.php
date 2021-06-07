@@ -32,6 +32,28 @@ class PostController extends Controller
         return Post::find($id);
     }
 
+    // private function sorting($posts) {
+    //     if (!isset($_GET['sort']))
+    //         $_GET['sort'] = 'likes';
+    //     switch ($_GET['sort']) {
+    //         case 'likes':
+    //             return array_values($posts->sortByDescription('rating')->all());
+    //             break;
+    //         case 'likes-asc':
+    //             return array_values($posts->sortByRating('rating')->all());
+    //             break;
+    //         case 'date':
+    //             return array_values($posts->sortByDate('created_at')->all());
+    //             break;
+    //         case 'date-desc':
+    //             return array_values($posts->sortByDateCreation('created_at')->all());
+    //             break;
+    //         default:
+    //             return array_values($posts->sortByRating('rating')->all());
+    //             break;
+    //     }
+    // }
+
     public function createComment(Request $request, $id)
     {
         $credentials = $request->validate([
