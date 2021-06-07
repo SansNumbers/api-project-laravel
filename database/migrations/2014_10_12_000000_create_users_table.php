@@ -19,13 +19,12 @@ class CreateUsersTable extends Migration
             $table->string('login')->unique();
             $table->string('password');
             $table->string('email')->unique();
-
+            
+            $table->string('remember_token')->nullable();
             $table->string('name')->default('User');
             $table->text('avatar')->nullable();
             $table->enum('role', ['user', 'admin'])->default('user');
             $table->integer('rating')->default(0);
-
-            $table->text('rememberToken')->nullable();
 
             $table->timestamps();
         });

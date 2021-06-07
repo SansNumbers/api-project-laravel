@@ -7,21 +7,18 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class Mail extends Mailable
+class YourMail extends Mailable
 {
     use Queueable, SerializesModels;
-
+public $details;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-
-    public $data;
-
-    public function __construct($data)
+    public function __construct($details)
     {
-        $this->data = $data;
+        $this->details = $details;
     }
 
     /**
@@ -31,8 +28,6 @@ class Mail extends Mailable
      */
     public function build()
     {
-        return $this->from('ucode.usof@gmail.com')
-                    ->view('mails.reset_password')
-                    ->text('mails.reset_password_plain');
+        return $this->subject('Zdarova')->view('mail');
     }
 }

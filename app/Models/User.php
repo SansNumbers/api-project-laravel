@@ -24,7 +24,8 @@ class User extends Authenticatable
         'password',
         'avatar',
         'email',
-        'role'
+        'role',
+        'remember_token'
     ];
 
     //Hashing password

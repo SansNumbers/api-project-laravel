@@ -155,11 +155,10 @@ class PostController extends Controller
         $like = Like::where('author', $credentials['type'])->where('post_id', $id)->get();
 
         if (count($like) > 0) {
-            if ($credentials['type'] === 'like') { // client sent like
+            if ($credentials['type'] === 'like') {
                 if ($like[0]['type'] === 'like')
-                    return $this->unlike($request, $id); // delete like
-                else { // change dislike on like
-                    // Update rating of post and type of like entity
+                    return $this->unlike($request, $id);
+                else {
                     $post->rating += 1;
                     $post->save();
                     $like[0]->type = 'like';
@@ -172,9 +171,8 @@ class PostController extends Controller
             }
             else { // client sent dislike
                 if ($like[0]['type'] === 'dislike')
-                    return $this->unlike($request, $id); // delete dislike
-                else { // change like on dislike
-                    // Update rating of post and type of like entity
+                    return $this->unlike($request, $id);
+                else {
                     $post->rating -= 1;
                     $post->save();
                     $like[0]->type = 'dislike';
@@ -278,5 +276,4 @@ class PostController extends Controller
     // {
     //     return Post::destroy($id);
     // }
-
 }

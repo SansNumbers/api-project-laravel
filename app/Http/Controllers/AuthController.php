@@ -4,16 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 
+use App\Mail\YourMail;
 use Illuminate\Support\Facades\Mail;
-// use App\Mail\Mail;
+use Illuminate\Support\Facades\URL;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
-use Laravel\Sanctum\HasApiTokens;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Password;
 
 use DB;
@@ -34,6 +34,10 @@ class AuthController extends Controller
         ]);
 
         $token = $user->createToken('myapptoken')->plainTextToken;
+
+        $user->update([
+            'remember_token' => $token 
+        ]);
 
         return response()->json([
             'user' => $user,
@@ -59,6 +63,10 @@ class AuthController extends Controller
 
         $token = $user->createToken('myapptoken')->plainTextToken;
 
+        $user->update([
+            'remember_token' => $token 
+        ]);
+        
         return response()->json([
             'user' => $user,
             'token' => $token,
@@ -67,47 +75,70 @@ class AuthController extends Controller
         ]);
     }
 
+
+    // public function reset_password(Request $request, $token) {
+    //     $fields = $request->validate([
+    //         'password' => 'required|string|confirmed'
+    //     ]);
+    //     $user = User::where('remember_token', $token)->first();
+    //     $user->update(['password' => bcrypt($fields['password'])]);
+    //     return [
+    //         'message' => 'Password was changed!'
+    //     ];
+    // }
+
+
+    public function passwordReset(Request $request){
+        $fileds = $request->validate([
+            'email' => 'required|string',
+        ]);
+        $user = User::where('email', $fileds['email'])->first();
+
+        $token = $user->createToken('resetToken')->plainTextToken;
+
+        $user->update(['remember_token' => $token]);
+        
+        $details = [
+            'title' => 'Link for reset password',
+            'body' => URL::current().'/'.$token
+        ];
+
+        Mail::to($user)->send(new YourMail($details));
+
+        $user->update([
+            'remember_token' => $token 
+        ]);
+
+        return [
+            'message' => 'Link was sent succeessfully!'
+        ];
+    }
+
+    public function confirmToken(Request $request, $token) {
+        $fields = $request->validate([
+            'password' => 'required|string|confirmed'
+        ]);
+
+        $user = User::where('remember_token', $token)->first();
+
+        $user->update(['password' => $fields['password']]);
+
+        $user->update(['remember_token' => NULL]);
+
+        return [
+            'message' => 'Password was changed!'
+        ];
+
+
+    }
+    
     public function logout() {
-        auth()->user()->tokens()->delete();
+
+        auth()->user()->update(['remember_token' => NULL]);
+
         return response()->json([
             'status' => 'Success',
             'message' => 'Logged out'
-        ]);
-    }
-
-    public function passwordReset(Request $request) {
-
-        $fields = $request->validate([
-            'email' => 'required|string',
-        ]);
-
-        $user = User::where('email', $fields['email'])->first();
-
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
-
-        $email = $request->input('email');
-        $user = DB::select('SELECT * FROM users WHERE email=:email', ['email' => $email]);
-        if (empty($user)) {
-            return response()->json([
-                'status' => 'FAIL',
-                'message' => 'There is no user with such email address'
-            ]);
-        }
-
-        $mailObj = new \stdClass();
-        $token = Str::random(12);
-        $mailObj->path = "http://localhost:{$_SERVER['SERVER_PORT']}/api/auth/password-reset/$token"; // link for the email
-        $mailObj->receiver = $user[0]->name;
-        Mail::to($email)->send(new ($mailObj));
-
-        // Remember the token
-        DB::update('UPDATE users SET remember_token=:token WHERE email=:email', ['token' => $token, 'email' => $email]);
-
-        return response()->json([
-            'status' => 'OK',
-            'message' => 'A password reset link was send to your email address'
         ]);
     }
 }

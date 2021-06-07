@@ -31,8 +31,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/auth/register', [AuthController::class, 'register']); //auth register
 Route::post('/auth/login', [AuthController::class, 'login']); //auth login
-Route::post('/auth/password-reset', [AuthController::class, 'passwordReset'])->name('password.reset');
-Route::post('/auth/password-reset/{$token}', [AuthController::class, 'confirmToken']);
+Route::post('/auth/password-reset', [AuthController::class, 'passwordReset']);
+Route::post('/auth/password-reset/{token}', [AuthController::class, 'confirmToken']);
 
 Route::group(['middleware' => ['auth:sanctum']], function() {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -49,6 +49,8 @@ Route::group(['middleware' => ['auth:sanctum']], function() {
 // |--------------------------------------------------------------------------
 
 Route::get('/users/{id}', [UsersController::class, 'show']);
+
+
 
 Route::group(['middleware' => ['auth:sanctum']], function() {
     Route::get('/users', [UsersController::class, 'index']);
