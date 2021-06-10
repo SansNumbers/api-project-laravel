@@ -14,46 +14,21 @@ use Illuminate\Http\Request;
 class CategoriesController extends Controller
 {
 
-    //All categories (admin only)
+    //All categories
     public function index()
     {
-        $user = $this->isAdmin();
-
-        if (!$user) {
-            return response()->json([
-                'status' => 'FAIL',
-                'message' => 'You`re not admin'
-            ]);
-        }
-
         return Category::all();
     }
 
-    //Display specified category (admin only)
+    //Display specified category
     public function show($id)
     {
-        $user = $this->isAdmin();
-        if (!$user) {
-            return response()->json([
-                'status' => 'FAIL',
-                'message' => 'You`re not admin'
-            ]);
-        }
         return Category::find($id);
     }
 
     //Get posts by categories 
     public function getPosts($id)
     {
-        $user = $this->isAdmin();
-
-        if (!$user) {
-            return response()->json([
-                'status' => 'FAIL',
-                'message' => 'You`re not admin'
-            ]);
-        }
-
         $category = Category::find($id);
         if (empty($category)) {
             return response()->json([

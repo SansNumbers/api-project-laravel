@@ -48,17 +48,16 @@ Route::group(['middleware' => ['auth:sanctum']], function() {
 // 6. delete user (DELETE) /api/users/{id}
 // |--------------------------------------------------------------------------
 
+Route::get('/users', [UsersController::class, 'index']);
 Route::get('/users/{id}', [UsersController::class, 'show']);
 
-
 Route::group(['middleware' => ['auth:sanctum']], function() {
-    Route::get('/users', [UsersController::class, 'index']);
+
     Route::post('/users', [UsersController::class, 'store']);
     Route::patch('/users/{id}', [UsersController::class, 'update']);
     Route::delete('/users', [UsersController::class, 'destroy']);
     Route::post('/users/avatar', [UsersController::class, 'setAvatar']);
 });
-
 
 // |--------------------------------------------------------------------------
 // | Public post
@@ -104,14 +103,13 @@ Route::group(['middleware' => ['auth:sanctum']], function() {
 // 6. delete a category (DELETE) /api/categories/{id}
 // |--------------------------------------------------------------------------
 
-Route::group(['middleware' => ['auth:sanctum']], function() {
+Route::get('/categories', [CategoriesController::class, 'index']);
+Route::get('/categories/{id}', [CategoriesController::class, 'show']);
 
-    Route::get('/categories', [CategoriesController::class, 'index']);
-    Route::get('/categories/{id}', [CategoriesController::class, 'show']);
+Route::group(['middleware' => ['auth:sanctum']], function() {
     Route::post('/categories', [CategoriesController::class, 'store']);
     Route::patch('/categories/{id}', [CategoriesController::class, 'update']);
     Route::delete('/categories/{id}', [CategoriesController::class, 'destroy']);
-
 });
 
 Route::get('/categories/{id}/posts', [CategoriesController::class, 'getPosts']); //categories get posts
@@ -134,14 +132,6 @@ Route::group(['middleware' => ['auth:sanctum']], function() {
     Route::get('/comments/{id}/like', [CommentsController::class, 'getLikesComment']); //comments get likes
     Route::post('/comments/{id}/like', [CommentsController::class, 'likeComment']); //comments post likes
     Route::delete('/comments/{id}/like', [CommentsController::class, 'removeLikeComment']); //comments delete {id} comments likes
-});
-
-
-//Protected (if authorized -> implements)
-Route::group(['middleware' => ['auth:sanctum']], function() {
-    Route::post('/users', [UsersController::class, 'store']); //user create user
-    Route::patch('/users/{id}', [UsersController::class, 'update']); //user update user
-    Route::delete('/users/{id}', [UsersController::class, 'destroy']); //user delete user
 });
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {

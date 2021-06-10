@@ -26,15 +26,6 @@ class UsersController extends Controller
     //Display all users (admin only)
     public function index()
     {
-        $user = $this->isAdmin();
-
-        if (!$user) {
-            return response()->json([
-                'status' => 'FAIL',
-                'message' => 'You`re not admin'
-            ]);
-        }
-
         return User::all();
     }
 
@@ -110,6 +101,17 @@ class UsersController extends Controller
 
     //Set avatar
     public function setAvatar(Request $request) {
+        
+        $user = $this->checkAuth();
+
+        if(!$user)
+        {
+            return response()->json([
+                'status' => 'Fail',
+                'message' => 'Log in firstly',
+            ]);
+        }
+
         $user_id = auth()->user()->id;
         $request->validate([
             'avatar' => 'required|image|mimes:jpeg,png,jpg,gif',
