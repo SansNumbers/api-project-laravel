@@ -6,9 +6,7 @@ use App\Models\User;
 use App\Models\Post;
 use App\Models\Comment;
 
-
 use Illuminate\Support\Facades\Mail;
-
 
 use App\Traits\UploadTrait;
 

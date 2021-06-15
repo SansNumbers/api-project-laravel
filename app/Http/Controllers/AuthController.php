@@ -91,7 +91,8 @@ class AuthController extends Controller
         
         $details = [
             'title' => 'Link for reset password',
-            'body' => URL::current().'/'.$token
+            'body' => 'http://127.0.0.1:3000/password-reset/'.$token
+            
         ];
 
         Mail::to($user)->send(new YourMail($details));

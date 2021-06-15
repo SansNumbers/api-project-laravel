@@ -76,6 +76,9 @@ Route::group(['middleware' => ['auth:sanctum']], function() {
 
 Route::get('/posts', [PostController::class, 'index']);
 Route::get('/posts/{id}', [PostController::class, 'show']);
+Route::get('/posts/{id}/comments', [PostController::class, 'getComment']); //post get comments //public
+Route::get('/posts/{id}/categories', [PostController::class, 'getCategories']); //post get categories
+Route::get('/posts/{id}/like', [PostController::class, 'getLikes']); //post get all likes
 
 Route::group(['middleware' => ['auth:sanctum']], function() {
 
@@ -83,14 +86,10 @@ Route::group(['middleware' => ['auth:sanctum']], function() {
     Route::patch('/posts/{id}', [PostController::class, 'update']);
     Route::delete('/posts/{id}', [PostController::class, 'destroy']);
 
-    Route::get('/posts/{id}/comments', [PostController::class, 'getComment']); //post get comments //public
     Route::post('/posts/{id}/comments', [PostController::class, 'createComment']); //post create comment
 
-    Route::get('/posts/{id}/like', [PostController::class, 'getLikes']); //post get all likes
     Route::post('/posts/{id}/like', [PostController::class, 'like']); //post create like
     Route::delete('/posts/{id}/like', [PostController::class, 'removeLike']); //post delete like
-
-    Route::get('/posts/{id}/categories', [PostController::class, 'getCategories']); //post get categories
 });
 
 // |--------------------------------------------------------------------------
@@ -124,12 +123,13 @@ Route::get('/categories/{id}/posts', [CategoriesController::class, 'getPosts']);
 // 6. delete a like (DELETE) /api/comments/{id}/like
 // |--------------------------------------------------------------------------
 
+Route::get('/comments/{id}', [CommentsController::class, 'show']);
+Route::get('/comments/{id}/like', [CommentsController::class, 'getLikesComment']); //comments get likes
+
 Route::group(['middleware' => ['auth:sanctum']], function() {
-    Route::get('/comments/{id}', [CommentsController::class, 'show']);
     Route::patch('/comments/{id}', [CommentsController::class, 'update']);
     Route::delete('/comments/{id}', [CommentsController::class, 'destroy']);
 
-    Route::get('/comments/{id}/like', [CommentsController::class, 'getLikesComment']); //comments get likes
     Route::post('/comments/{id}/like', [CommentsController::class, 'likeComment']); //comments post likes
     Route::delete('/comments/{id}/like', [CommentsController::class, 'removeLikeComment']); //comments delete {id} comments likes
 });
