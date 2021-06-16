@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Mail;
 
 use App\Traits\UploadTrait;
 
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+
+use DB;
+
 use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Http\Request;
@@ -24,7 +29,7 @@ class UsersController extends Controller
     //Display all users (admin only)
     public function index()
     {
-        return User::all();
+        return DB::table('users')->paginate(12);
     }
 
     //Display the specified resource.

@@ -34,5 +34,27 @@ class UserSeeder extends Seeder
             'name' => 'Igor Antypin',
             'role' => 'admin'
         ]);
+
+        \App\Models\User::create([
+            'login' => 'Somerset1',
+            'password' => 'qwerty123',
+            'email' => 'kreig.antipin@gmail.com1',
+            'name' => 'Igor Antypin',
+            'role' => 'admin'
+        ]);
+        \App\Models\User::create([
+            'login' => 'Somerset2',
+            'password' => 'qwerty123',
+            'email' => 'kreig.antipin@gmail.com2',
+            'name' => 'Igor Antypin',
+            'role' => 'admin'
+        ]);
+        \App\Models\User::create([
+            'login' => 'Somerset3',
+            'password' => 'qwerty123',
+            'email' => 'kreig.antipin@gmail.com3',
+            'name' => 'Igor Antypin',
+            'role' => 'admin'
+        ]);
     }
 }
